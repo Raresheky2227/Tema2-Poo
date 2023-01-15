@@ -1,2 +1,2 @@
-# Tema2-Poo
-Etapa finala a proiectului la poo
+# Second Stage OOP Project
+Final stage of the project
