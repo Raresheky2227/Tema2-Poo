@@ -15,7 +15,8 @@ public class Main {
         CurrentUser currentUser = new CurrentUser(user);
         int to_add = 0;
         ArrayList<Movie> movie = new ArrayList<Movie>();
-        int has_come_from_upgrades = 0;
+        int has_come_from_upgrades_movies = 0;
+        int has_come_from_upgrades_details = 0;
         int filtered = 0;
 
         platform.SetPlatformMovies(inputData.getMovies());
@@ -36,26 +37,38 @@ public class Main {
             System.out.println(inputData.getActions().indexOf(action) + 1);
             System.out.printf("pozitie output: ");
             System.out.println(output.size() + 1);
-            System.out.println(has_come_from_upgrades);
+            System.out.println(has_come_from_upgrades_movies);
+            System.out.println(has_come_from_upgrades_details);
             System.out.println(platform.getListedMovies().toString());
             System.out.println(filtered);
             if (action.getType().equals("back") && platform.getState().equals("Details")) {
-                platform.setState("Movies");
-                platform.getListedMovies().clear();
-                ActionHandler.ListMovies(platform);
-                if (platform.getListedMovies().isEmpty()) {
-                    output.add(new Output("Error", platform.getListedMovies(), null));
+                if (has_come_from_upgrades_details == 0) {
+                    platform.setState("Movies");
+                    platform.getListedMovies().clear();
+                    ActionHandler.ListMovies(platform);
+                    if (platform.getListedMovies().isEmpty()) {
+                        output.add(new Output("Error", platform.getListedMovies(), null));
+                    } else output.add(new Output(null, platform.getListedMovies(), platform.getCurrentUser()));
                 }
-                else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
+                else if (has_come_from_upgrades_details == 1) {
+                    has_come_from_upgrades_details = 0;
+                    platform.setState("Upgrades");
+                    platform.getListedMovies().clear();
+                }
             }
             else if (action.getType().equals("back") && platform.getState().equals("Movies")) {
                 platform.getListedMovies().clear();
-                if (has_come_from_upgrades == 0)
+                if (has_come_from_upgrades_movies == 0)
                     platform.setState("Homepage Log");
-                if (has_come_from_upgrades == 1)
+                if (has_come_from_upgrades_movies == 1)
                     platform.setState("Upgrades");
+                //vine din details in movies nu in upgrades, eroarea aia mister a 5a provine de la un back in homepage log
             }
-            else if (action.getType().equals("back") && !(platform.getState().equals("Movies") || platform.getState().equals("Details"))) {
+            else if (action.getType().equals("back") && platform.getState().equals("Upgrades")) {
+                platform.setState("Homepage Log");
+                platform.getListedMovies().clear();
+            }
+            else if (action.getType().equals("back") && !(platform.getState().equals("Movies") || platform.getState().equals("Upgrades") ||platform.getState().equals("Details"))) {
                 output.add(new Output("Error", platform.getListedMovies(), null));
             }
 
@@ -92,9 +105,9 @@ public class Main {
                 }
                 else if (action.getPage().equals("movies") && (platform.getState().equals("Homepage Log") || platform.getState().equals("Upgrades") || platform.getState().equals("Details"))) {
                     if (platform.getState().equals("Upgrades"))
-                        has_come_from_upgrades = 1;
+                        has_come_from_upgrades_movies = 1;
                     if (platform.getState().equals("Homepage Log"))
-                        has_come_from_upgrades = 0;
+                        has_come_from_upgrades_movies = 0;
                     platform.setState("Movies");
                     while (!movie.isEmpty()) {
                         if (!ActionHandler.Add(platform, movie.get(movie.size() - 1)))
@@ -116,9 +129,14 @@ public class Main {
                             ActionHandler.ListMovies(platform);
                         else filtered = 0;
                     }
+                    if (platform.getState().equals("Upgrades"))
+                        has_come_from_upgrades_details = 1;
+                    if (platform.getState().equals("Movies"))
+                        has_come_from_upgrades_details = 0;
                     ActionHandler.SeeDetails(platform, action.getMovie());
                     if (platform.getListedMovies().size() == 0) {
                         output.add(new Output("Error", platform.getListedMovies(), null));
+                        has_come_from_upgrades_details = 1;
                         platform.setState("Homepage Log");
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
@@ -261,7 +279,7 @@ public class Main {
                 }
                 else if (action.getFeature().equals("rate") && platform.getState().equals("Details")) {
                     if (!ActionHandler.RateMovie(platform, action.getRate())) {
-                        output.add(new Output("Error", platform.getListedMovies(), null));
+                        output.add(new Output("Error", new ArrayList<>(), null));
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                 }
@@ -277,6 +295,9 @@ public class Main {
                     }
                     else if (platform.getListedMovies().isEmpty()) {
                         output.add(new Output("Error", platform.getListedMovies(), null));
+                        platform.setState("Movies");
+                        platform.getListedMovies().clear();
+                        ActionHandler.ListMovies(platform);
                     }
                 }
             }
