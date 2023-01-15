@@ -288,9 +288,130 @@ public class ActionHandler {
     }
 
     public static void Recommend (Platform platform) {
+        ActionHandler.ListMovies(platform);
+        System.out.println(platform.getListedMovies().toString());
+        System.out.println();
+
+        class Top {
+            String name;
+            int num_likes;
+
+            public String getName() {
+                return name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public int getNum_likes() {
+                return num_likes;
+            }
+
+            public void setNum_likes(int num_likes) {
+                this.num_likes = num_likes;
+            }
+
+            public Top (String string, int no) {
+                this.name = string;
+                this.num_likes = no;
+            }
+
+            @Override
+            public String toString() {
+                return this.name +  " " + this.num_likes;
+            }
+        }
+        int found = 0;
+        ArrayList<Top> top = new ArrayList<>();
+        for (MovieRun movieRun : platform.getListedMovies()) {
+            if (movieRun.getNumLikes() > 0) {
+                for (String genre : movieRun.getGenres()) {
+                    found = 0;
+                    for (Top top1 : top) {
+                        if (top1.getName().equals(genre)) {
+                            top1.setNum_likes(top1.getNum_likes() + movieRun.getNumLikes());
+                            found = 1;
+                            break;
+                        }
+                    }
+                    if (found == 0) {
+                        top.add(new Top(genre, movieRun.getNumLikes()));
+                    }
+                }
+            }
+        }
+        String movieName = "No recommendation";
+        if (!top.isEmpty()) {
+            System.out.println(top.toString());
+            int max_likes = 0;
+            ArrayList<String> Genres = new ArrayList<>();
+            for (Top top1 : top) {
+                if (top1.getNum_likes() > max_likes) {
+                    max_likes = top1.getNum_likes();
+                }
+            }
+            System.out.println(max_likes);
+            System.out.println();
+            final int MAX = max_likes;
+            top.removeIf(n -> (n.getNum_likes() < MAX));
+            System.out.println(top.toString());
+            System.out.println();
+            String topGenre = " ";
+            for (Top top1 : top) {
+                if (topGenre.compareTo(top1.getName()) < 0) {
+                    topGenre = top1.getName();
+                }
+            }
+            System.out.println(topGenre);
+
+            ArrayList<Integer> to_delete = new ArrayList<>();
+            for (MovieRun movieRun : platform.getListedMovies()) {
+                for (MovieRun watched : platform.getCurrentUser().getWatchedMovies()) {
+                    if (movieRun.getName().equals(watched.getName())) {
+                        to_delete.add(platform.getListedMovies().indexOf(movieRun));
+                        break;
+                    }
+                }
+            }
+            System.out.println(to_delete.toString());
+            for (Integer in : to_delete) {
+                platform.getListedMovies().remove((int) in);
+            }
+            max_likes = 0;
+            ArrayList<MovieRun> Recom = new ArrayList<>();
+            ArrayList<Integer> to_delete1 = new ArrayList<>();
+            for (MovieRun movieRun : platform.getListedMovies()) {
+                found = 0;
+                for (String genre : movieRun.getGenres()) {
+                    if (genre.equals(topGenre)) {
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found == 1) {
+                    to_delete1.add(platform.getListedMovies().indexOf(movieRun));
+                    System.out.println(movieRun);
+                    if (movieRun.getNumLikes() > max_likes) {
+                        max_likes = movieRun.getNumLikes();
+                    }
+                    Recom.add(movieRun);
+                }
+            }
+            System.out.println(max_likes);
+            System.out.println(to_delete1.toString());
+
+            final int MAX1 = max_likes;
+            Recom.removeIf(n -> (n.getNumLikes() < MAX1));
+            System.out.println(Recom.toString());
+            if (movieName.equals("No recommendation") && !Recom.isEmpty()) {
+                movieName = Recom.get(0).getName();
+            }
+
+        }
         Notification notification = new Notification();
         notification.setMessage("Recommendation");
-        notification.setMovieName("No recommendation");
+        notification.setMovieName(movieName);
         if (platform.getCurrentUser().getCredentials().getAccountType().equals("premium")) {
             platform.getCurrentUser().getNotifications().add(notification);
         }

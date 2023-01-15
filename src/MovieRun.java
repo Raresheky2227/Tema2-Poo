@@ -125,6 +125,9 @@ public class MovieRun {
         this.numRatings = numRatings;
     }
 
+    public MovieRun() {
+    }
+
     @Override
     public String toString() {
         return "MovieRun{" +

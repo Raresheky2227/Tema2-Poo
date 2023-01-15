@@ -14,7 +14,9 @@ public class Main {
         User user = new User();
         CurrentUser currentUser = new CurrentUser(user);
         int to_add = 0;
-        Movie movie = new Movie();
+        ArrayList<Movie> movie = new ArrayList<Movie>();
+        int has_come_from_upgrades = 0;
+        int filtered = 0;
 
         platform.SetPlatformMovies(inputData.getMovies());
         platform.SetRegisteredUsers(inputData.getUsers());
@@ -34,6 +36,9 @@ public class Main {
             System.out.println(inputData.getActions().indexOf(action) + 1);
             System.out.printf("pozitie output: ");
             System.out.println(output.size() + 1);
+            System.out.println(has_come_from_upgrades);
+            System.out.println(platform.getListedMovies().toString());
+            System.out.println(filtered);
             if (action.getType().equals("back") && platform.getState().equals("Details")) {
                 platform.setState("Movies");
                 platform.getListedMovies().clear();
@@ -45,7 +50,10 @@ public class Main {
             }
             else if (action.getType().equals("back") && platform.getState().equals("Movies")) {
                 platform.getListedMovies().clear();
-                platform.setState("Homepage Log");
+                if (has_come_from_upgrades == 0)
+                    platform.setState("Homepage Log");
+                if (has_come_from_upgrades == 1)
+                    platform.setState("Upgrades");
             }
             else if (action.getType().equals("back") && !(platform.getState().equals("Movies") || platform.getState().equals("Details"))) {
                 output.add(new Output("Error", platform.getListedMovies(), null));
@@ -83,11 +91,15 @@ public class Main {
                     output.add(new Output("Error", platform.getListedMovies(), null));
                 }
                 else if (action.getPage().equals("movies") && (platform.getState().equals("Homepage Log") || platform.getState().equals("Upgrades") || platform.getState().equals("Details"))) {
+                    if (platform.getState().equals("Upgrades"))
+                        has_come_from_upgrades = 1;
+                    if (platform.getState().equals("Homepage Log"))
+                        has_come_from_upgrades = 0;
                     platform.setState("Movies");
-                    if (to_add == 1) {
-                        to_add = 0;
-                        if (!ActionHandler.Add(platform, movie))
+                    while (!movie.isEmpty()) {
+                        if (!ActionHandler.Add(platform, movie.get(movie.size() - 1)))
                             output.add(new Output("Error", new ArrayList<MovieRun>(), null));
+                        movie.remove(movie.get(movie.size() - 1));
                     }
                         platform.getListedMovies().clear();
                         ActionHandler.ListMovies(platform);
@@ -99,15 +111,19 @@ public class Main {
                     output.add(new Output("Error", platform.getListedMovies(), null));
                 }
                 else if (action.getPage().equals("see details") && (platform.getState().equals("Movies") || (platform.getState().equals("Details")))) {
-                    if (platform.getState().equals("Details"))
-                        ActionHandler.ListMovies(platform);
+                    if (platform.getState().equals("Details")) {
+                        if (filtered == 0)
+                            ActionHandler.ListMovies(platform);
+                        else filtered = 0;
+                    }
                     ActionHandler.SeeDetails(platform, action.getMovie());
                     if (platform.getListedMovies().size() == 0) {
                         output.add(new Output("Error", platform.getListedMovies(), null));
-                        platform.setState("Movies");
+                        platform.setState("Homepage Log");
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                     platform.setState("Details");
+
                 }
 
 
@@ -174,6 +190,7 @@ public class Main {
                     platform.getListedMovies().clear();
                     ActionHandler.ListMovies(platform);
                     ActionHandler.FilterMovies(platform, action.getFilters());
+                    filtered = 1;
                     output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                 }
 
@@ -234,6 +251,7 @@ public class Main {
                 else if (action.getFeature().equals("like") && platform.getState().equals("Details")) {
                     if (!ActionHandler.LikeMovie(platform, action.getMovie())) {
                         output.add(new Output("Error", platform.getListedMovies(), null));
+                        platform.setState("Homepage Log");
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                 }
@@ -266,8 +284,7 @@ public class Main {
 
             if (action.getType().equals("database")) {
                 if (action.getFeature().equals("add")) {
-                    to_add = 1;
-                    movie = action.getAddedMovie();
+                    movie.add(0, action.getAddedMovie());
                     System.out.println(movie.toString());
                 }
             }

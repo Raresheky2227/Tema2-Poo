@@ -24,4 +24,12 @@ public class UserSubs {
         this.name = currentUser.getCredentials().getName();
         this.SubGenres = new ArrayList<>(0);
     }
+
+    public UserSubs () {
+
+    }
+
+    public String toString () {
+        return this.getName() + ": " + this.getSubGenres().toString();
+    }
 }
