@@ -174,6 +174,9 @@ public class ActionHandler {
         Movie Movie = new Movie();
         MovieRun movieR = platform.getListedMovies().get(0);
         int x = 1;
+        if (platform.getCurrentUser().getTokensCount() < 2 && platform.getCurrentUser().getCredentials().getAccountType().equals("standard")) {
+            return false;
+        }
 
         if (platform.getCurrentUser().getCredentials().getAccountType().equals("premium"))
             if (platform.getCurrentUser().getNumFreePremiumMovies() > 0) {
@@ -232,6 +235,7 @@ public class ActionHandler {
 
     public static boolean RateMovie (Platform platform, int rate) {
         if (rate > 5) return false;
+        if (rate < 1) return false;
         if (platform.getListedMovies().isEmpty()) return false;
 
         MovieRun RatedMovie = platform.getListedMovies().get(0);
@@ -413,11 +417,11 @@ public class ActionHandler {
                 return false;
         }
         platform.getPlatformMovies().add(movieRun);
-        ActionHandler.UpdateADD(platform, movieRun);
+        ActionHandler.Update(platform, movieRun);
         return true;
     }
 
-    public static void UpdateADD (Platform platform, MovieRun movieRun) {
+    public static void Update (Platform platform, MovieRun movieRun) {
         String name = movieRun.getName();
         for (UserSubs userSubs : platform.getUserSubs()) {
             for (String genre : userSubs.getSubGenres()) {

@@ -253,6 +253,7 @@ public class Main {
 
                 if (action.getFeature().equals("like") && !platform.getState().equals("Details")) {
                     output.add(new Output("Error", platform.getListedMovies(), null));
+                    platform.setState("Homepage Log");
                 }
                 else if (action.getFeature().equals("like") && platform.getState().equals("Details")) {
                     if (!ActionHandler.LikeMovie(platform, action.getMovie())) {
@@ -261,6 +262,7 @@ public class Main {
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                 }
+
 
                 if (action.getFeature().equals("rate") && !platform.getState().equals("Details")) {
                     output.add(new Output("Error", platform.getListedMovies(), null));
@@ -271,6 +273,7 @@ public class Main {
                     }
                     else output.add(new Output(null , platform.getListedMovies(), platform.getCurrentUser()));
                 }
+
 
                 if (action.getFeature().equals("subscribe") && !platform.getState().equals("Details")) {
                     output.add(new Output("Error", platform.getListedMovies(), null));
